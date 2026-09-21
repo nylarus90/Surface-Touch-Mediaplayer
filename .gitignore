@@ -1,0 +1,16 @@
+# Build- und Release-Artefakte
+dist/
+*.exe
+
+# Laufzeit- und lokale Dateien
+*.log
+*.lnk
+Wiedergabeliste.txt
+
+# Editor- und Windows-Dateien
+.vs/
+bin/
+obj/
+*.user
+Thumbs.db
+Desktop.ini

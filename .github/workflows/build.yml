@@ -1,0 +1,14 @@
+name: Build and test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and run tests
+        shell: pwsh
+        run: .\build.ps1 -Test

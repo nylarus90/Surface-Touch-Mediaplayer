@@ -1,0 +1,49 @@
+# Surface Touch Mediaplayer
+
+Surface Touch Mediaplayer ist eine große, touch-freundliche Windows-Oberfläche für den bereits installierten VLC-Videokern. Sie wurde für das Surface Pro 8 bei 2880 × 1920 Pixeln und 200 % Windows-Skalierung gestaltet.
+
+Die Anwendung enthält weder VLC noch Mediencodecs. Sie findet eine vorhandene 64-Bit-Installation von VLC automatisch.
+
+## Start
+
+1. Installiere die 64-Bit-Version von [VLC media player](https://www.videolan.org/vlc/).
+2. Lade `Surface Touch Mediaplayer.exe` aus den Release-Assets herunter.
+3. Starte die EXE mit einem Doppelklick und öffne Medien über `+ DATEI` oder ziehe sie in das Fenster.
+
+Die EXE benötigt keine Installation und kann an einem beliebigen Ort gespeichert werden. Sie sucht VLC zuerst im üblichen Installationsordner, danach in den Windows-Registry-Einträgen und zuletzt neben der EXE beziehungsweise im Unterordner `VLC`. Eine 32-Bit-Installation wird nicht unterstützt.
+
+Für eine portable VLC-Installation lege den vollständigen VLC-Ordner als `VLC` neben die EXE. In diesem Unterordner müssen mindestens `libvlc.dll` und der Ordner `plugins` liegen.
+
+## Bedienung
+
+- `▶` und `Ⅱ` starten und pausieren die Wiedergabe, `■` stoppt sie.
+- Die großen `◀◀`- und `▶▶`-Tasten wechseln Titel.
+- `🔀` schaltet Zufall ein oder aus. Aktiv wird die Taste farbig markiert; alle Titel werden einmal gemischt abgespielt, bevor ein neuer Durchlauf beginnt.
+- `🔁` wechselt zwischen aus, gesamte Liste wiederholen und aktuellen Titel wiederholen. Für einen einzelnen Titel wird `🔂` angezeigt.
+- `⛶`, `F11` oder `Esc` steuern das Vollbild. `LISTE AUS` blendet die Wiedergabeliste auch im normalen Fenster aus.
+- `🔊` und `🔇` steuern den Ton; daneben liegen die Lautstärketasten.
+- `ENTF.` entfernt den markierten Eintrag. `LEER` beendet die Wiedergabe und leert die gesamte Liste.
+
+Wiedergabelisten gelten nur für die aktuelle Sitzung und werden beim Schließen verworfen.
+
+## Wiedergabelisten
+
+Unterstützt werden `.xspf`, `.m3u`, `.m3u8`, `.pls`, `.asx`, `.wpl`, `.vlc` und `.ram`. Relative Pfade, lokale Dateien und Stream-Adressen werden in Listenreihenfolge übernommen. Eine HLS-Datei (`.m3u8` mit `#EXT-X-`-Einträgen) wird als Stream an VLC übergeben.
+
+Öffne nur Wiedergabelisten aus vertrauenswürdigen Quellen: Sie können Stream-Adressen enthalten; beim Abspielen kann VLC daher eine Netzwerkverbindung aufbauen. Netzwerk-Dateipfade in Wiedergabelisten werden beim Import nicht übernommen. XML-Listen werden ohne DTD und ohne externe XML-Entitäten eingelesen; Textlisten sind auf 10 MB und 10.000 Einträge begrenzt.
+
+## Sicherheit und Windows-Hinweis
+
+Die Anwendung sammelt keine Telemetrie und enthält keine Update-Funktion. Sie ist derzeit nicht mit einem Code-Signing-Zertifikat signiert. Windows SmartScreen kann daher beim ersten Start eine Warnung anzeigen. Prüfe die SHA-256-Prüfsumme in den GitHub-Release-Notizen oder baue die EXE aus dem Quellcode selbst.
+
+Eine Laufzeitdatei `TouchPlayer.log` kann neben der EXE entstehen. Sie enthält technische Start- und Beendigungsinformationen und gehört nicht in ein Issue oder Release-Archiv.
+
+## Entwicklung
+
+Hinweise zum lokalen Build, zu Tests und zum Erstellen eines Release-Archivs stehen in [BUILDING.md](BUILDING.md). Die Änderungen der aktuellen Version stehen in [CHANGELOG.md](CHANGELOG.md). Vor dem Veröffentlichen hilft die [Release-Checkliste](RELEASE_CHECKLIST.md).
+
+## Abhängigkeit und Marken
+
+VLC wird nicht mitgeliefert. VLC ist ein Projekt und eine Marke von VideoLAN. Die Lizenzbedingungen von VLC stehen im [VLC-Quellcode](https://code.videolan.org/videolan/vlc/-/blob/master/COPYING). Dieses Projekt ruft die lokal installierte VLC-Bibliothek dynamisch auf und enthält keine VLC-Binärdateien.
+
+Surface Touch Mediaplayer steht unter der [MIT-Lizenz](LICENSE). Sie gilt für den eigenen Quellcode dieses Projekts, nicht für VLC oder dessen Bestandteile.
