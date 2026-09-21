@@ -5,7 +5,7 @@ Surface Touch Mediaplayer 1.0.0 bietet eine für das Surface Pro 8 optimierte, g
 ## Voraussetzungen
 
 - Windows 10 oder Windows 11 (64 Bit)
-- installierter 64-Bit-VLC unter `C:\Program Files\VideoLAN\VLC`
+- installierter 64-Bit-VLC (die Anwendung erkennt Standardinstallation, Registry-Einträge und eine portable Installation neben der EXE automatisch)
 
 VLC und dessen Plugins sind nicht im Download enthalten.
 
@@ -22,7 +22,7 @@ VLC und dessen Plugins sind nicht im Download enthalten.
 
 SHA-256 für `Surface Touch Mediaplayer.exe`:
 
-`9900E5DD53A3A6F95A2DA90E57AD618E1382E0E90C5B33DE7EBEED7F98F5D9B4`
+`BCC9C4D86EB17DE4E20F5DA4E09E36FBDD64B8356398FF3C70A2106C739F38A4`
 
 Die automatischen Import- und Oberflächentests sind erfolgreich. Microsoft Defender meldete für die Release-EXE keine Bedrohung.
 

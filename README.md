@@ -1,5 +1,7 @@
 # Surface Touch Mediaplayer
 
+[English version](README.en.md)
+
 Surface Touch Mediaplayer ist eine große, touch-freundliche Windows-Oberfläche für den bereits installierten VLC-Videokern. Sie wurde für das Surface Pro 8 bei 2880 × 1920 Pixeln und 200 % Windows-Skalierung gestaltet.
 
 Die Anwendung enthält weder VLC noch Mediencodecs. Sie findet eine vorhandene 64-Bit-Installation von VLC automatisch.

@@ -35,7 +35,7 @@ if ($Test) {
 
 if ($Package) {
     $archive = Join-Path $outputDirectory 'Surface-Touch-Mediaplayer-1.0.0-win-x64.zip'
-    $files = @($outputExe, (Join-Path $projectRoot 'README.md'))
+    $files = @($outputExe, (Join-Path $projectRoot 'README.md'), (Join-Path $projectRoot 'README.en.md'))
     if (Test-Path -LiteralPath (Join-Path $projectRoot 'LICENSE')) { $files += Join-Path $projectRoot 'LICENSE' }
     Compress-Archive -LiteralPath $files -DestinationPath $archive -Force
     Write-Output "Release-Archiv: $archive"
