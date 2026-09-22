@@ -1,5 +1,10 @@
 # Änderungsprotokoll
 
+## 1.0.1
+
+- Die Ton-Taste liest nun den tatsächlichen Stumm-Status von VLC und zeigt dazu das passende Symbol.
+- Englische README ergänzt und die MIT-Lizenz auf `Nylarus90` ausgestellt.
+
 ## 1.0.0
 
 - Touch-freundliche Windows-Oberfläche für die installierte 64-Bit-Version von VLC.

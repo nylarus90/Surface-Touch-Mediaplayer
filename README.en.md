@@ -10,7 +10,7 @@ The application includes neither VLC nor media codecs. It automatically locates 
 
 1. Install the 64-bit version of [VLC media player](https://www.videolan.org/vlc/).
 2. Download `Surface Touch Mediaplayer.exe` from the release assets.
-3. Double-click the EXE, then open media with `+ FILE` or drag files into the window.
+3. Double-click the EXE, then open media with `+ DATEI` or drag files into the window.
 
 The EXE needs no installation and can be stored anywhere. It searches first in the standard VLC installation directory, then in Windows Registry entries, and finally beside the EXE or in a `VLC` subdirectory. A 32-bit VLC installation is not supported.
 
@@ -18,13 +18,15 @@ For a portable VLC installation, place the complete VLC folder as `VLC` beside t
 
 ## Controls
 
+The current interface labels are in German; the names below match the buttons in the app.
+
 - `▶` and `Ⅱ` start and pause playback; `■` stops it.
 - The large `◀◀` and `▶▶` buttons change tracks.
 - `🔀` enables or disables shuffle. When active, the button is highlighted; every track is played once in a shuffled order before the next pass starts.
 - `🔁` cycles through off, repeat entire playlist, and repeat current track. `🔂` is shown when a single track is repeated.
-- `⛶`, `F11`, or `Esc` control full screen. `HIDE LIST` hides the playlist in windowed mode too.
+- `⛶`, `F11`, or `Esc` control full screen. `LISTE AUS` hides the playlist in windowed mode; `LISTE AN` shows it again.
 - `🔊` and `🔇` control sound; volume controls are beside them.
-- `DEL` removes the selected entry. `CLEAR` stops playback and clears the entire playlist.
+- `ENTF.` removes the selected entry. `LEER` stops playback and clears the entire playlist.
 
 Playlists exist only for the current session and are discarded when the application closes.
 

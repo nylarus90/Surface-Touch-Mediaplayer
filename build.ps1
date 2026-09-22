@@ -1,7 +1,9 @@
 [CmdletBinding()]
 param(
     [switch]$Test,
-    [switch]$Package
+    [switch]$Package,
+    [ValidatePattern('^\d+\.\d+\.\d+$')]
+    [string]$Version = '1.0.1'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -34,7 +36,7 @@ if ($Test) {
 }
 
 if ($Package) {
-    $archive = Join-Path $outputDirectory 'Surface-Touch-Mediaplayer-1.0.0-win-x64.zip'
+    $archive = Join-Path $outputDirectory "Surface-Touch-Mediaplayer-$Version-win-x64.zip"
     $files = @($outputExe, (Join-Path $projectRoot 'README.md'), (Join-Path $projectRoot 'README.en.md'))
     if (Test-Path -LiteralPath (Join-Path $projectRoot 'LICENSE')) { $files += Join-Path $projectRoot 'LICENSE' }
     Compress-Archive -LiteralPath $files -DestinationPath $archive -Force

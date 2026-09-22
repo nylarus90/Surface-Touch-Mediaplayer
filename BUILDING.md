@@ -21,7 +21,7 @@ Die fertige Anwendung liegt danach unter `dist\Surface Touch Mediaplayer.exe`. D
 ## Release-Archiv erstellen
 
 ```powershell
-.\build.ps1 -Test -Package
+.\build.ps1 -Test -Package -Version 1.0.1
 ```
 
-Das Archiv `dist\Surface-Touch-Mediaplayer-1.0.0-win-x64.zip` ist für die Assets eines GitHub-Releases vorgesehen. VLC-Bibliotheken und VLC-Plugins werden bewusst nicht eingepackt.
+Die EXE unter `dist\Surface Touch Mediaplayer.exe` und das Archiv `dist\Surface-Touch-Mediaplayer-1.0.1-win-x64.zip` sind für die Assets eines GitHub-Releases vorgesehen. VLC-Bibliotheken und VLC-Plugins werden bewusst nicht eingepackt.
