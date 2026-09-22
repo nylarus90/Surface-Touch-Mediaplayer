@@ -6,6 +6,15 @@ Surface Touch Mediaplayer ist eine große, touch-freundliche Windows-Oberfläche
 
 Die Anwendung enthält weder VLC noch Mediencodecs. Sie findet eine vorhandene 64-Bit-Installation von VLC automatisch.
 
+## Hinweis zu Windows SmartScreen
+
+> [!WARNING]
+> Die EXE ist **nicht digital signiert**. Windows SmartScreen kann den Download oder den ersten Start mit „Der Computer wurde durch Windows geschützt“ blockieren.
+>
+> Lade sie nur von den [GitHub-Releases](https://github.com/nylarus90/Surface-Touch-Mediaplayer/releases) herunter und vergleiche ihre SHA-256-Prüfsumme mit der Angabe im jeweiligen Release. Für die direkt heruntergeladene EXE: `Get-FileHash -Algorithm SHA256 .\Surface-Touch-Mediaplayer.exe` in PowerShell ausführen.
+>
+> Wenn die Prüfsumme stimmt und du der Quelle vertraust, kannst du bei angebotener Option „Weitere Informationen“ und danach „Trotzdem ausführen“ wählen. Auf verwalteten Geräten oder bei aktivem Smart App Control kann diese Option fehlen.
+
 ## Start
 
 1. Installiere die 64-Bit-Version von [VLC media player](https://www.videolan.org/vlc/).
@@ -34,9 +43,9 @@ Unterstützt werden `.xspf`, `.m3u`, `.m3u8`, `.pls`, `.asx`, `.wpl`, `.vlc` und
 
 Öffne nur Wiedergabelisten aus vertrauenswürdigen Quellen: Sie können Stream-Adressen enthalten; beim Abspielen kann VLC daher eine Netzwerkverbindung aufbauen. Netzwerk-Dateipfade in Wiedergabelisten werden beim Import nicht übernommen. XML-Listen werden ohne DTD und ohne externe XML-Entitäten eingelesen; Textlisten sind auf 10 MB und 10.000 Einträge begrenzt.
 
-## Sicherheit und Windows-Hinweis
+## Datenschutz und Protokoll
 
-Die Anwendung sammelt keine Telemetrie und enthält keine Update-Funktion. Sie ist derzeit nicht mit einem Code-Signing-Zertifikat signiert. Windows SmartScreen kann daher beim ersten Start eine Warnung anzeigen. Prüfe die SHA-256-Prüfsumme in den GitHub-Release-Notizen oder baue die EXE aus dem Quellcode selbst.
+Die Anwendung sammelt keine Telemetrie und enthält keine Update-Funktion.
 
 Eine Laufzeitdatei `TouchPlayer.log` kann neben der EXE entstehen. Sie enthält technische Start- und Beendigungsinformationen und gehört nicht in ein Issue oder Release-Archiv.
 

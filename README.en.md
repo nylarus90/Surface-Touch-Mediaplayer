@@ -6,6 +6,15 @@ Surface Touch Mediaplayer provides a large, touch-friendly Windows interface for
 
 The application includes neither VLC nor media codecs. It automatically locates an existing 64-bit VLC installation.
 
+## Windows SmartScreen notice
+
+> [!WARNING]
+> The EXE is **not digitally signed**. Windows SmartScreen may block the download or first launch with a “Windows protected your PC” warning.
+>
+> Download only from the [GitHub releases](https://github.com/nylarus90/Surface-Touch-Mediaplayer/releases) and compare the file's SHA-256 checksum with the value in that release. For the directly downloaded EXE, run `Get-FileHash -Algorithm SHA256 .\Surface-Touch-Mediaplayer.exe` in PowerShell.
+>
+> If the checksum matches and you trust the source, choose “More info” and then “Run anyway” when Windows offers those options. Managed devices or Smart App Control may not offer an override.
+
 ## Getting started
 
 1. Install the 64-bit version of [VLC media player](https://www.videolan.org/vlc/).
@@ -36,9 +45,9 @@ Supported formats are `.xspf`, `.m3u`, `.m3u8`, `.pls`, `.asx`, `.wpl`, `.vlc`, 
 
 Only open playlists from trusted sources: they may contain stream addresses, and VLC can therefore establish a network connection during playback. Network file paths inside playlists are skipped during import. XML playlists are read without DTDs or external XML entities; text playlists are limited to 10 MB and 10,000 entries.
 
-## Security and Windows notice
+## Privacy and logs
 
-The application collects no telemetry and has no update function. It is currently not signed with a code-signing certificate, so Windows SmartScreen may display a warning on first launch. Verify the SHA-256 checksum in the GitHub release notes or build the EXE from source yourself.
+The application collects no telemetry and has no update function.
 
 A `TouchPlayer.log` runtime log may be created next to the EXE. It contains technical start-up and shut-down information and should not be included in an issue or release archive.
 
