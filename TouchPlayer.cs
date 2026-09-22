@@ -31,7 +31,8 @@ internal static class VlcNative
     [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)] internal static extern void libvlc_media_player_set_time(IntPtr player, long time);
     [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)] internal static extern int libvlc_audio_get_volume(IntPtr player);
     [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)] internal static extern int libvlc_audio_set_volume(IntPtr player, int volume);
-    [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)] internal static extern void libvlc_audio_toggle_mute(IntPtr player);
+    [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)] internal static extern int libvlc_audio_get_mute(IntPtr player);
+    [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)] internal static extern void libvlc_audio_set_mute(IntPtr player, int muted);
 }
 
 internal static class VlcInstallation
@@ -644,7 +645,7 @@ internal sealed class TouchPlayer : Form
         controls.Controls.Add(fullButton);
         controls.Controls.Add(MakeTransportButton("−", 70, delegate { ChangeVolume(-10); }));
         controls.Controls.Add(MakeTransportButton("+", 70, delegate { ChangeVolume(10); }));
-        muteButton = MakeMediaIconButton("🔊", 118, "Ton ein / aus", delegate { ToggleMute(); });
+        muteButton = MakeMediaIconButton("🔊", 118, "Ton an – ausschalten", delegate { ToggleMute(); });
         controls.Controls.Add(muteButton);
         volume.Text = "100%";
         volume.ForeColor = accent;
@@ -880,10 +881,24 @@ internal sealed class TouchPlayer : Form
     private void ToggleMute()
     {
         if (player == IntPtr.Zero) return;
-        VlcNative.libvlc_audio_toggle_mute(player);
-        muted = !muted;
+        int actual = VlcNative.libvlc_audio_get_mute(player);
+        bool nextMuted = !(actual < 0 ? muted : actual != 0);
+        VlcNative.libvlc_audio_set_mute(player, nextMuted ? 1 : 0);
+        UpdateMuteButton(nextMuted);
+        SyncMuteButton();
+    }
+    private void SyncMuteButton()
+    {
+        if (player == IntPtr.Zero) return;
+        int actual = VlcNative.libvlc_audio_get_mute(player);
+        if (actual >= 0 && (actual != 0) != muted) UpdateMuteButton(actual != 0);
+    }
+    private void UpdateMuteButton(bool isMuted)
+    {
+        muted = isMuted;
         muteButton.Text = muted ? "🔇" : "🔊";
         SetModeButton(muteButton, muted);
+        tips.SetToolTip(muteButton, muted ? "Ton aus – einschalten" : "Ton an – ausschalten");
     }
     private void ToggleShuffle()
     {
@@ -981,6 +996,7 @@ internal sealed class TouchPlayer : Form
     private void OnTick(object sender, EventArgs e)
     {
         if (player == IntPtr.Zero) return;
+        SyncMuteButton();
         int state = VlcNative.libvlc_media_player_get_state(player);
         if (state != lastState) { lastState = state; Log("state " + state); }
         long length = VlcNative.libvlc_media_player_get_length(player);
