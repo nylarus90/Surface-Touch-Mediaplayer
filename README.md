@@ -45,7 +45,7 @@ Bei einem von GitHub heruntergeladenen Release wurde dieser konkrete Fall auf ei
 
 1. Installiere die 64-Bit-Version von [VLC media player](https://www.videolan.org/vlc/).
 2. Lade `Surface Touch Mediaplayer.exe` aus den Release-Assets herunter.
-3. Starte die EXE mit einem Doppelklick und öffne Medien über `+ DATEI` oder ziehe sie in das Fenster.
+3. Starte die EXE mit einem Doppelklick und öffne Medien über `＋` oder ziehe sie in das Fenster.
 
 Die EXE benötigt keine Installation und kann an einem beliebigen Ort gespeichert werden. Sie sucht VLC zuerst im üblichen Installationsordner, danach in den Windows-Registry-Einträgen und zuletzt neben der EXE beziehungsweise im Unterordner `VLC`. Eine 32-Bit-Installation wird nicht unterstützt.
 
@@ -57,9 +57,11 @@ Für eine portable VLC-Installation lege den vollständigen VLC-Ordner als `VLC`
 - Die großen `◀◀`- und `▶▶`-Tasten wechseln Titel.
 - `🔀` schaltet Zufall ein oder aus. Aktiv wird die Taste farbig markiert; alle Titel werden einmal gemischt abgespielt, bevor ein neuer Durchlauf beginnt.
 - `🔁` wechselt zwischen aus, gesamte Liste wiederholen und aktuellen Titel wiederholen. Für einen einzelnen Titel wird `🔂` angezeigt.
-- `⛶`, `F11` oder `Esc` steuern das Vollbild. `LISTE AUS` blendet die Wiedergabeliste auch im normalen Fenster aus.
+- `⛶`, `F11` oder `Esc` steuern das Vollbild. `☰` blendet die Wiedergabeliste im normalen Fenster ein oder aus.
 - `🔊` und `🔇` steuern den Ton; daneben liegen die Lautstärketasten.
-- `ENTF.` entfernt den markierten Eintrag. `LEER` beendet die Wiedergabe und leert die gesamte Liste.
+- `⌫` entfernt den markierten Eintrag. `🗑` beendet die Wiedergabe und leert die gesamte Liste.
+
+Aktive Modi werden farbig markiert. Nach dem Umschalten erscheint kurz eine Statusmeldung. Tooltips, Dialoge, Fehlermeldungen und zugängliche Namen werden anhand der Windows-Anzeigesprache automatisch auf Deutsch oder Englisch dargestellt.
 
 Wiedergabelisten gelten nur für die aktuelle Sitzung und werden beim Schließen verworfen.
 

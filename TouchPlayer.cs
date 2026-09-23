@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using Microsoft.Win32;
 using System.Runtime.InteropServices;
@@ -8,6 +9,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
+
+internal static class UiText
+{
+    internal static bool IsGerman { get { return CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("de", StringComparison.OrdinalIgnoreCase); } }
+    internal static string Get(string german, string english) { return IsGerman ? german : english; }
+}
 
 internal static class VlcNative
 {
@@ -134,7 +141,7 @@ internal static class PlaylistReader
         if (ext == ".pls") return ReadPls(path);
         if (ext == ".asx") return ReadAsx(path);
         if (ext == ".wpl") return ReadWpl(path);
-        throw new FormatException("Dieses Wiedergabelistenformat wird nicht unterstützt.");
+        throw new FormatException(UiText.Get("Dieses Wiedergabelistenformat wird nicht unterstützt.", "This playlist format is not supported."));
     }
 
     private static XmlDocument LoadXml(string path)
@@ -153,7 +160,7 @@ internal static class PlaylistReader
     {
         XmlDocument document = LoadXml(path);
         if (document.DocumentElement == null || document.DocumentElement.LocalName != "playlist")
-            throw new FormatException("Die Datei ist keine XSPF-Wiedergabeliste.");
+            throw new FormatException(UiText.Get("Die Datei ist keine XSPF-Wiedergabeliste.", "The file is not an XSPF playlist."));
         List<PlaylistEntry> result = new List<PlaylistEntry>();
         XmlNodeList tracks = document.DocumentElement.SelectNodes("./*[local-name()='trackList']/*[local-name()='track']");
         foreach (XmlNode track in tracks) {
@@ -222,7 +229,7 @@ internal static class PlaylistReader
 
     private static void AddResult(List<PlaylistEntry> result, string source, string title)
     {
-        if (result.Count >= MaxPlaylistEntries) throw new FormatException("Die Wiedergabeliste enthält mehr als " + MaxPlaylistEntries + " Einträge.");
+        if (result.Count >= MaxPlaylistEntries) throw new FormatException(UiText.Get("Die Wiedergabeliste enthält mehr als ", "The playlist contains more than ") + MaxPlaylistEntries + UiText.Get(" Einträge.", " entries."));
         title = title == null ? "" : title.Trim();
         if (title.Length > MaxTitleLength) title = title.Substring(0, MaxTitleLength);
         result.Add(new PlaylistEntry(source, title));
@@ -231,7 +238,7 @@ internal static class PlaylistReader
     private static string[] ReadLines(string path)
     {
         FileInfo info = new FileInfo(path);
-        if (info.Length > MaxPlaylistBytes) throw new FormatException("Die Wiedergabeliste ist größer als 10 MB.");
+        if (info.Length > MaxPlaylistBytes) throw new FormatException(UiText.Get("Die Wiedergabeliste ist größer als 10 MB.", "The playlist is larger than 10 MB."));
         byte[] bytes = File.ReadAllBytes(path);
         string text;
         if (bytes.Length >= 2 && bytes[0] == 0xFF && bytes[1] == 0xFE) text = Encoding.Unicode.GetString(bytes);
@@ -298,7 +305,7 @@ internal static class PlaylistReader
     {
         XmlDocument document = LoadXml(path);
         if (document.DocumentElement == null || document.DocumentElement.LocalName.ToLowerInvariant() != "asx")
-            throw new FormatException("Die Datei ist keine ASX-Wiedergabeliste.");
+            throw new FormatException(UiText.Get("Die Datei ist keine ASX-Wiedergabeliste.", "The file is not an ASX playlist."));
         List<PlaylistEntry> result = new List<PlaylistEntry>();
         XmlNodeList entries = document.DocumentElement.SelectNodes("./*[translate(local-name(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='entry']");
         foreach (XmlNode entry in entries) {
@@ -321,7 +328,7 @@ internal static class PlaylistReader
     {
         XmlDocument document = LoadXml(path);
         if (document.DocumentElement == null || document.DocumentElement.LocalName.ToLowerInvariant() != "smil")
-            throw new FormatException("Die Datei ist keine WPL-Wiedergabeliste.");
+            throw new FormatException(UiText.Get("Die Datei ist keine WPL-Wiedergabeliste.", "The file is not a WPL playlist."));
         List<PlaylistEntry> result = new List<PlaylistEntry>();
         XmlNodeList media = document.DocumentElement.SelectNodes(".//*[translate(local-name(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='media']");
         foreach (XmlNode item in media) {
@@ -412,6 +419,8 @@ internal sealed class TouchPlayer : Form
     private readonly Label volume = new Label();
     private readonly Button previousButton;
     private readonly Button nextButton;
+    private readonly Button openButton;
+    private readonly Button removeButton;
     private readonly Button playPause;
     private readonly Button maximize;
     private readonly Button fullButton;
@@ -420,6 +429,7 @@ internal sealed class TouchPlayer : Form
     private readonly Button repeatButton;
     private readonly Button muteButton;
     private readonly Button clearButton;
+    private readonly Label listTitle;
     private readonly Panel top = new Panel();
     private readonly Panel side = new Panel();
     private readonly Timer timer = new Timer();
@@ -486,8 +496,20 @@ internal sealed class TouchPlayer : Form
     {
         Button result = MakeTransportButton(symbol, width, click);
         result.Font = new Font("Segoe UI Symbol", 24, FontStyle.Regular);
-        tips.SetToolTip(result, tooltip);
+        SetHint(result, tooltip);
         return result;
+    }
+
+    private void SetHint(Control target, string text)
+    {
+        tips.SetToolTip(target, text);
+        target.AccessibleName = text;
+    }
+
+    private void ShowStatus(Control target, string text)
+    {
+        SetHint(target, text);
+        try { tips.Show(text, target, 1600); } catch (InvalidOperationException) { }
     }
 
     private Label MakeLabel(string text, int points, Color color)
@@ -531,14 +553,24 @@ internal sealed class TouchPlayer : Form
         topActions.WrapContents = false;
         topActions.FlowDirection = FlowDirection.LeftToRight;
         top.Controls.Add(topActions);
-        Button open = MakeButton("+ DATEI", 145, delegate { OpenFiles(); });
-        topActions.Controls.Add(open);
-        playlistButton = MakeButton("LISTE AUS", 130, delegate { TogglePlaylist(); });
+        openButton = MakeButton("＋", 145, delegate { OpenFiles(); });
+        openButton.Font = new Font("Segoe UI Symbol", 24, FontStyle.Regular);
+        SetHint(openButton, UiText.Get("Dateien öffnen", "Open files"));
+        topActions.Controls.Add(openButton);
+        playlistButton = MakeButton("☰", 130, delegate { TogglePlaylist(); });
+        playlistButton.Font = new Font("Segoe UI Symbol", 24, FontStyle.Regular);
+        SetModeButton(playlistButton, true);
+        SetHint(playlistButton, UiText.Get("Wiedergabeliste sichtbar – ausblenden", "Playlist visible – hide"));
         topActions.Controls.Add(playlistButton);
-        topActions.Controls.Add(MakeButton("—", 65, delegate { WindowState = FormWindowState.Minimized; }));
+        Button minimize = MakeButton("—", 65, delegate { WindowState = FormWindowState.Minimized; });
+        SetHint(minimize, UiText.Get("Minimieren", "Minimize"));
+        topActions.Controls.Add(minimize);
         maximize = MakeButton("□", 65, delegate { ToggleMaximize(); });
+        SetHint(maximize, UiText.Get("Maximieren oder wiederherstellen", "Maximize or restore"));
         topActions.Controls.Add(maximize);
-        topActions.Controls.Add(MakeButton("X", 65, delegate { Close(); }));
+        Button close = MakeButton("X", 65, delegate { Close(); });
+        SetHint(close, UiText.Get("Schließen", "Close"));
+        topActions.Controls.Add(close);
         Label brand = MakeLabel("SURFACE TOUCH  ·  MEDIAPLAYER", 22, Color.White);
         brand.Dock = DockStyle.Fill;
         brand.Padding = new Padding(U(20), 0, 0, 0);
@@ -558,7 +590,9 @@ internal sealed class TouchPlayer : Form
         side.Dock = DockStyle.Fill;
         side.BackColor = panel;
         middle.Controls.Add(side, 1, 0);
-        Label listTitle = MakeLabel("WIEDERGABELISTE", 17, Color.White);
+        listTitle = MakeLabel("☰", 22, Color.White);
+        listTitle.Font = new Font("Segoe UI Symbol", 22, FontStyle.Regular);
+        SetHint(listTitle, UiText.Get("Wiedergabeliste", "Playlist"));
         listTitle.Dock = DockStyle.Top;
         listTitle.Height = U(62);
         listTitle.Padding = new Padding(U(16), 0, 0, 0);
@@ -568,12 +602,20 @@ internal sealed class TouchPlayer : Form
         listActions.Height = U(86);
         listActions.WrapContents = false;
         side.Controls.Add(listActions);
-        listActions.Controls.Add(MakeButton("ENTF.", 100, delegate { RemoveSelected(); }));
-        clearButton = MakeButton("LEER", 100, delegate { ClearPlaylist(); });
-        tips.SetToolTip(clearButton, "Wiedergabeliste leeren");
+        removeButton = MakeButton("⌫", 100, delegate { RemoveSelected(); });
+        removeButton.Font = new Font("Segoe UI Symbol", 22, FontStyle.Regular);
+        SetHint(removeButton, UiText.Get("Markierten Eintrag entfernen", "Remove selected item"));
+        listActions.Controls.Add(removeButton);
+        clearButton = MakeButton("🗑", 100, delegate { ClearPlaylist(); });
+        clearButton.Font = new Font("Segoe UI Symbol", 22, FontStyle.Regular);
+        SetHint(clearButton, UiText.Get("Wiedergabeliste leeren", "Clear playlist"));
         listActions.Controls.Add(clearButton);
-        listActions.Controls.Add(MakeButton("↑", 60, delegate { ScrollList(-3); }));
-        listActions.Controls.Add(MakeButton("↓", 60, delegate { ScrollList(3); }));
+        Button scrollUp = MakeButton("↑", 60, delegate { ScrollList(-3); });
+        SetHint(scrollUp, UiText.Get("In der Liste nach oben", "Scroll playlist up"));
+        listActions.Controls.Add(scrollUp);
+        Button scrollDown = MakeButton("↓", 60, delegate { ScrollList(3); });
+        SetHint(scrollDown, UiText.Get("In der Liste nach unten", "Scroll playlist down"));
+        listActions.Controls.Add(scrollDown);
         playlist.Dock = DockStyle.Fill;
         playlist.BackColor = panel;
         playlist.ForeColor = Color.White;
@@ -601,7 +643,7 @@ internal sealed class TouchPlayer : Form
         info.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 80));
         info.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20));
         bottom.Controls.Add(info, 0, 0);
-        title.Text = "Datei öffnen oder hierher ziehen";
+        title.Text = UiText.Get("Datei öffnen oder hierher ziehen", "Open a file or drag it here");
         title.ForeColor = Color.White;
         title.Font = new Font("Segoe UI", 17);
         title.Dock = DockStyle.Fill;
@@ -631,21 +673,27 @@ internal sealed class TouchPlayer : Form
         controls.WrapContents = false;
         bottom.Controls.Add(controls, 0, 2);
         previousButton = MakeNavigationButton("◀◀", delegate { Previous(); });
+        SetHint(previousButton, UiText.Get("Vorheriger Titel", "Previous track"));
         controls.Controls.Add(previousButton);
-        playPause = MakeMediaIconButton("▶", 132, "Wiedergabe / Pause", delegate { TogglePlayback(); });
+        playPause = MakeMediaIconButton("▶", 132, UiText.Get("Wiedergabe oder Pause", "Play or pause"), delegate { TogglePlayback(); });
         controls.Controls.Add(playPause);
-        controls.Controls.Add(MakeMediaIconButton("■", 116, "Stopp", delegate { StopPlayback(); }));
+        controls.Controls.Add(MakeMediaIconButton("■", 116, UiText.Get("Stopp", "Stop"), delegate { StopPlayback(); }));
         nextButton = MakeNavigationButton("▶▶", delegate { Next(); });
+        SetHint(nextButton, UiText.Get("Nächster Titel", "Next track"));
         controls.Controls.Add(nextButton);
-        shuffleButton = MakeMediaIconButton("🔀", 116, "Zufallswiedergabe: aus", delegate { ToggleShuffle(); });
+        shuffleButton = MakeMediaIconButton("🔀", 116, UiText.Get("Zufallswiedergabe: aus", "Shuffle: off"), delegate { ToggleShuffle(); });
         controls.Controls.Add(shuffleButton);
-        repeatButton = MakeMediaIconButton("🔁", 116, "Wiederholen: aus", delegate { CycleRepeatMode(); });
+        repeatButton = MakeMediaIconButton("🔁", 116, UiText.Get("Wiederholen: aus", "Repeat: off"), delegate { CycleRepeatMode(); });
         controls.Controls.Add(repeatButton);
-        fullButton = MakeMediaIconButton("⛶", 112, "Vollbild", delegate { ToggleFullscreen(); });
+        fullButton = MakeMediaIconButton("⛶", 112, UiText.Get("Vollbild", "Full screen"), delegate { ToggleFullscreen(); });
         controls.Controls.Add(fullButton);
-        controls.Controls.Add(MakeTransportButton("−", 70, delegate { ChangeVolume(-10); }));
-        controls.Controls.Add(MakeTransportButton("+", 70, delegate { ChangeVolume(10); }));
-        muteButton = MakeMediaIconButton("🔊", 118, "Ton an – ausschalten", delegate { ToggleMute(); });
+        Button volumeDown = MakeTransportButton("−", 70, delegate { ChangeVolume(-10); });
+        SetHint(volumeDown, UiText.Get("Leiser", "Volume down"));
+        controls.Controls.Add(volumeDown);
+        Button volumeUp = MakeTransportButton("+", 70, delegate { ChangeVolume(10); });
+        SetHint(volumeUp, UiText.Get("Lauter", "Volume up"));
+        controls.Controls.Add(volumeUp);
+        muteButton = MakeMediaIconButton("🔊", 118, UiText.Get("Ton an – ausschalten", "Sound on – mute"), delegate { ToggleMute(); });
         controls.Controls.Add(muteButton);
         volume.Text = "100%";
         volume.ForeColor = accent;
@@ -678,15 +726,15 @@ internal sealed class TouchPlayer : Form
         Log("Shown");
         try {
             string vlcDir = VlcInstallation.FindDirectory();
-            if (vlcDir == null) throw new InvalidOperationException("VLC wurde nicht gefunden. Installiere die 64-Bit-Version von VLC oder lege eine portable VLC-Installation im Unterordner 'VLC' neben dieser EXE ab.");
-            if (!VlcNative.SetDllDirectory(vlcDir)) throw new InvalidOperationException("Der VLC-Installationsordner konnte nicht als Bibliothekspfad verwendet werden.");
+            if (vlcDir == null) throw new InvalidOperationException(UiText.Get("VLC wurde nicht gefunden. Installiere die 64-Bit-Version von VLC oder lege eine portable VLC-Installation im Unterordner 'VLC' neben dieser EXE ab.", "VLC was not found. Install the 64-bit version of VLC or place a portable VLC installation in a 'VLC' folder beside this EXE."));
+            if (!VlcNative.SetDllDirectory(vlcDir)) throw new InvalidOperationException(UiText.Get("Der VLC-Installationsordner konnte nicht als Bibliothekspfad verwendet werden.", "The VLC installation folder could not be used as a library path."));
             Environment.SetEnvironmentVariable("VLC_PLUGIN_PATH", Path.Combine(vlcDir, "plugins"));
             instance = VlcNative.libvlc_new(0, IntPtr.Zero);
             Log("libvlc_new " + instance);
-            if (instance == IntPtr.Zero) throw new InvalidOperationException("Der VLC-Videokern konnte nicht gestartet werden.");
+            if (instance == IntPtr.Zero) throw new InvalidOperationException(UiText.Get("Der VLC-Videokern konnte nicht gestartet werden.", "The VLC playback engine could not be started."));
             player = VlcNative.libvlc_media_player_new(instance);
             Log("media_player_new " + player);
-            if (player == IntPtr.Zero) throw new InvalidOperationException("Der VLC-Player konnte nicht erstellt werden.");
+            if (player == IntPtr.Zero) throw new InvalidOperationException(UiText.Get("Der VLC-Player konnte nicht erstellt werden.", "The VLC player could not be created."));
             VlcNative.libvlc_media_player_set_hwnd(player, video.Handle);
             Log("set_hwnd");
             string[] arguments = Environment.GetCommandLineArgs();
@@ -751,10 +799,10 @@ internal sealed class TouchPlayer : Form
             List<PlaylistEntry> entries = PlaylistReader.Read(path);
             int added = 0;
             foreach (PlaylistEntry entry in entries) if (AddEntry(entry.Source, entry.Title)) added++;
-            if (added == 0) MessageBox.Show(this, "Die Wiedergabeliste enthält keine erreichbaren Medien.", "Surface Touch Mediaplayer", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            else if (added < entries.Count) MessageBox.Show(this, added + " Titel übernommen; " + (entries.Count - added) + " nicht erreichbar.", "Surface Touch Mediaplayer", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (added == 0) MessageBox.Show(this, UiText.Get("Die Wiedergabeliste enthält keine erreichbaren Medien.", "The playlist contains no accessible media."), "Surface Touch Mediaplayer", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            else if (added < entries.Count) MessageBox.Show(this, UiText.Get(added + " Titel übernommen; " + (entries.Count - added) + " nicht erreichbar.", added + " tracks added; " + (entries.Count - added) + " unavailable."), "Surface Touch Mediaplayer", MessageBoxButtons.OK, MessageBoxIcon.Information);
         } catch (Exception ex) {
-            MessageBox.Show(this, "Die Wiedergabeliste konnte nicht gelesen werden: " + ex.Message, "Surface Touch Mediaplayer", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show(this, UiText.Get("Die Wiedergabeliste konnte nicht gelesen werden: ", "The playlist could not be read: ") + ex.Message, "Surface Touch Mediaplayer", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
     }
 
@@ -762,7 +810,8 @@ internal sealed class TouchPlayer : Form
     {
         using (OpenFileDialog dialog = new OpenFileDialog()) {
             dialog.Multiselect = true;
-            dialog.Filter = "Medien und Listen|*.mp4;*.mkv;*.avi;*.mov;*.webm;*.mp3;*.flac;*.wav;*.m4a;*.ts;*.wmv;*.mpeg;*.mpg;*.xspf;*.m3u;*.m3u8;*.pls;*.asx;*.wpl;*.vlc;*.ram|Wiedergabelisten|*.xspf;*.m3u;*.m3u8;*.pls;*.asx;*.wpl;*.vlc;*.ram|Alle Dateien|*.*";
+            dialog.Title = UiText.Get("Medien oder Wiedergabelisten öffnen", "Open media or playlists");
+            dialog.Filter = UiText.Get("Medien und Listen", "Media and playlists") + "|*.mp4;*.mkv;*.avi;*.mov;*.webm;*.mp3;*.flac;*.wav;*.m4a;*.ts;*.wmv;*.mpeg;*.mpg;*.xspf;*.m3u;*.m3u8;*.pls;*.asx;*.wpl;*.vlc;*.ram|" + UiText.Get("Wiedergabelisten", "Playlists") + "|*.xspf;*.m3u;*.m3u8;*.pls;*.asx;*.wpl;*.vlc;*.ram|" + UiText.Get("Alle Dateien", "All files") + "|*.*";
             if (dialog.ShowDialog(this) == DialogResult.OK) AddFiles(dialog.FileNames);
         }
     }
@@ -782,7 +831,7 @@ internal sealed class TouchPlayer : Form
             media = remote ? VlcNative.libvlc_media_new_location(instance, path) : VlcNative.libvlc_media_new_path(instance, path);
         } finally { Marshal.FreeHGlobal(path); }
         if (media == IntPtr.Zero) {
-            MessageBox.Show(this, "Diese Datei konnte nicht geöffnet werden.", "Surface Touch Mediaplayer");
+            MessageBox.Show(this, UiText.Get("Diese Datei konnte nicht geöffnet werden.", "This file could not be opened."), "Surface Touch Mediaplayer");
             return;
         }
         VlcNative.libvlc_media_player_set_media(player, media);
@@ -841,7 +890,7 @@ internal sealed class TouchPlayer : Form
         if (wasCurrent) current = -1;
         if (files.Count == 0) {
             current = -1;
-            title.Text = "Datei öffnen oder hierher ziehen";
+            title.Text = UiText.Get("Datei öffnen oder hierher ziehen", "Open a file or drag it here");
             ResetShuffleState();
         } else if (wasCurrent) {
             ResetShuffleState();
@@ -860,7 +909,7 @@ internal sealed class TouchPlayer : Form
         playlist.Items.Clear();
         current = -1;
         endedHandled = false;
-        title.Text = "Datei öffnen oder hierher ziehen";
+        title.Text = UiText.Get("Datei öffnen oder hierher ziehen", "Open a file or drag it here");
         time.Text = "00:00 / 00:00";
         seek.Fraction = 0;
         ResetShuffleState();
@@ -898,21 +947,21 @@ internal sealed class TouchPlayer : Form
         muted = isMuted;
         muteButton.Text = muted ? "🔇" : "🔊";
         SetModeButton(muteButton, muted);
-        tips.SetToolTip(muteButton, muted ? "Ton aus – einschalten" : "Ton an – ausschalten");
+        ShowStatus(muteButton, muted ? UiText.Get("Ton aus – einschalten", "Muted – turn sound on") : UiText.Get("Ton an – ausschalten", "Sound on – mute"));
     }
     private void ToggleShuffle()
     {
         shuffleEnabled = !shuffleEnabled;
         ResetShuffleState();
         SetModeButton(shuffleButton, shuffleEnabled);
-        tips.SetToolTip(shuffleButton, shuffleEnabled ? "Zufallswiedergabe: an" : "Zufallswiedergabe: aus");
+        ShowStatus(shuffleButton, shuffleEnabled ? UiText.Get("Zufallswiedergabe: an", "Shuffle: on") : UiText.Get("Zufallswiedergabe: aus", "Shuffle: off"));
     }
     private void CycleRepeatMode()
     {
         repeatMode = repeatMode == RepeatMode.Off ? RepeatMode.All : repeatMode == RepeatMode.All ? RepeatMode.One : RepeatMode.Off;
         repeatButton.Text = repeatMode == RepeatMode.One ? "🔂" : "🔁";
         SetModeButton(repeatButton, repeatMode != RepeatMode.Off);
-        tips.SetToolTip(repeatButton, repeatMode == RepeatMode.All ? "Wiederholen: gesamte Liste" : repeatMode == RepeatMode.One ? "Wiederholen: aktueller Titel" : "Wiederholen: aus");
+        ShowStatus(repeatButton, repeatMode == RepeatMode.All ? UiText.Get("Wiederholen: gesamte Liste", "Repeat: entire playlist") : repeatMode == RepeatMode.One ? UiText.Get("Wiederholen: aktueller Titel", "Repeat: current track") : UiText.Get("Wiederholen: aus", "Repeat: off"));
     }
     private void SetModeButton(Button target, bool active)
     {
@@ -949,9 +998,9 @@ internal sealed class TouchPlayer : Form
     {
         if (fullscreen) return;
         playlistVisible = !playlistVisible;
-        ApplyPlaylistVisibility();
+        ApplyPlaylistVisibility(true);
     }
-    private void ApplyPlaylistVisibility()
+    private void ApplyPlaylistVisibility(bool showStatus)
     {
         bool show = !fullscreen && playlistVisible;
         middle.SuspendLayout();
@@ -959,7 +1008,10 @@ internal sealed class TouchPlayer : Form
         middle.ColumnStyles[0].Width = show ? 70 : 100;
         middle.ColumnStyles[1].Width = show ? 30 : 0;
         video.Margin = show ? new Padding(0, 0, U(12), 0) : new Padding(0);
-        playlistButton.Text = playlistVisible ? "LISTE AUS" : "LISTE AN";
+        playlistButton.Text = "☰";
+        SetModeButton(playlistButton, playlistVisible);
+        string hint = playlistVisible ? UiText.Get("Wiedergabeliste sichtbar – ausblenden", "Playlist visible – hide") : UiText.Get("Wiedergabeliste ausgeblendet – einblenden", "Playlist hidden – show");
+        if (showStatus) ShowStatus(playlistButton, hint); else SetHint(playlistButton, hint);
         middle.ResumeLayout(true);
     }
     private void ToggleFullscreen()
@@ -979,18 +1031,18 @@ internal sealed class TouchPlayer : Form
             Bounds = Screen.FromControl(this).Bounds;
             TopMost = true;
             SetModeButton(fullButton, true);
-            tips.SetToolTip(fullButton, "Vollbild verlassen");
+            ShowStatus(fullButton, UiText.Get("Vollbild – verlassen", "Full screen – exit"));
         } else {
             fullscreen = false;
             TopMost = false;
             FormBorderStyle = FormBorderStyle.Sizable;
             top.Visible = true;
             root.RowStyles[0].Height = U(86);
-            ApplyPlaylistVisibility();
+            ApplyPlaylistVisibility(false);
             if (savedState == FormWindowState.Maximized) WindowState = FormWindowState.Maximized;
             else { WindowState = FormWindowState.Normal; Bounds = savedBounds; }
             SetModeButton(fullButton, false);
-            tips.SetToolTip(fullButton, "Vollbild");
+            ShowStatus(fullButton, UiText.Get("Vollbild verlassen", "Exited full screen"));
         }
     }
     private void OnTick(object sender, EventArgs e)

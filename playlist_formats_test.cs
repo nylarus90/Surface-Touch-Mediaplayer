@@ -1,7 +1,9 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 
 internal static class PlaylistFormatsTest
@@ -19,6 +21,8 @@ internal static class PlaylistFormatsTest
     [STAThread]
     private static int Main()
     {
+        CultureInfo originalUiCulture = Thread.CurrentThread.CurrentUICulture;
+        Thread.CurrentThread.CurrentUICulture = new CultureInfo("de-DE");
         string root = Path.Combine(Path.GetTempPath(), "vlc-touch-playlist-test-" + Guid.NewGuid().ToString("N"));
         string media = Path.Combine(root, "media");
         Directory.CreateDirectory(media);
@@ -113,6 +117,8 @@ internal static class PlaylistFormatsTest
                 TableLayoutPanel middle = (TableLayoutPanel)typeof(TouchPlayer).GetField("middle", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(form);
                 Panel video = (Panel)typeof(TouchPlayer).GetField("video", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(form);
                 Button listButton = (Button)typeof(TouchPlayer).GetField("playlistButton", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(form);
+                Button openButton = (Button)typeof(TouchPlayer).GetField("openButton", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(form);
+                Button removeButton = (Button)typeof(TouchPlayer).GetField("removeButton", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(form);
                 Button shuffleButton = (Button)typeof(TouchPlayer).GetField("shuffleButton", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(form);
                 Button repeatButton = (Button)typeof(TouchPlayer).GetField("repeatButton", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(form);
                 Button muteButton = (Button)typeof(TouchPlayer).GetField("muteButton", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(form);
@@ -122,12 +128,14 @@ internal static class PlaylistFormatsTest
                 Check(play.Height >= 104 && play.Font.Size >= 16, "Große Wiedergabetasten");
                 Check(previous.Width >= 170 && next.Width >= 170 && previous.Height >= 112 && next.Height >= 112 && previous.Font.Size >= 22 && next.Font.Size >= 22, "Extra große Vor- und Zurücktasten");
                 Check(muteButton.Width >= 118 && volume.Width >= 120, "Breite Ton- und Lautstärkeanzeige");
-                Check(clearButton.Width >= 100 && clearButton.Text == "LEER", "Taste zum Leeren der Wiedergabeliste");
+                Check(openButton.Text == "＋" && openButton.AccessibleName == "Dateien öffnen", "Sprachneutrale Öffnen-Taste");
+                Check(removeButton.Text == "⌫" && removeButton.AccessibleName == "Markierten Eintrag entfernen", "Sprachneutrale Entfernen-Taste");
+                Check(clearButton.Width >= 100 && clearButton.Text == "🗑" && clearButton.AccessibleName == "Wiedergabeliste leeren", "Sprachneutrale Taste zum Leeren der Wiedergabeliste");
                 Check(layout.RowStyles[2].Height >= 260 && title.Font.Size >= 17, "Titel- und Bedienbereich");
                 toggleList.Invoke(form, null);
-                Check(middle.ColumnStyles[1].Width == 0 && video.Margin.Right == 0 && listButton.Text == "LISTE AN", "Liste ausblenden");
+                Check(middle.ColumnStyles[1].Width == 0 && video.Margin.Right == 0 && listButton.Text == "☰" && listButton.AccessibleName.Contains("ausgeblendet"), "Liste ausblenden");
                 toggleList.Invoke(form, null);
-                Check(middle.ColumnStyles[1].Width == 30 && video.Margin.Right > 0 && listButton.Text == "LISTE AUS", "Liste einblenden");
+                Check(middle.ColumnStyles[1].Width == 30 && video.Margin.Right > 0 && listButton.Text == "☰" && listButton.AccessibleName.Contains("sichtbar"), "Liste einblenden");
 
                 MethodInfo toggleShuffle = typeof(TouchPlayer).GetMethod("ToggleShuffle", BindingFlags.NonPublic | BindingFlags.Instance);
                 MethodInfo cycleRepeat = typeof(TouchPlayer).GetMethod("CycleRepeatMode", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -150,12 +158,23 @@ internal static class PlaylistFormatsTest
                 typeof(TouchPlayer).GetMethod("OnClosing", BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[] { typeof(object), typeof(FormClosingEventArgs) }, null).Invoke(form, new object[] { form, new FormClosingEventArgs(CloseReason.None, false) });
             } finally { form.Dispose(); }
 
+            Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
+            TouchPlayer englishForm = new TouchPlayer();
+            try {
+                Label englishTitle = (Label)typeof(TouchPlayer).GetField("title", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(englishForm);
+                Button englishOpen = (Button)typeof(TouchPlayer).GetField("openButton", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(englishForm);
+                Button englishClear = (Button)typeof(TouchPlayer).GetField("clearButton", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(englishForm);
+                Check(englishTitle.Text == "Open a file or drag it here", "Englischer Leerzustand");
+                Check(englishOpen.AccessibleName == "Open files" && englishClear.AccessibleName == "Clear playlist", "Englische Tooltips und zugängliche Namen");
+            } finally { englishForm.Dispose(); }
+
             Console.WriteLine("Playlist-Formate, Sitzungsmodus, Wiederholen, Zufall und Oberfläche: OK");
             return 0;
         } catch (Exception ex) {
             Console.Error.WriteLine("TEST FEHLGESCHLAGEN: " + ex.Message);
             return 1;
         } finally {
+            Thread.CurrentThread.CurrentUICulture = originalUiCulture;
             try { if (Directory.Exists(root)) Directory.Delete(root, true); } catch { }
         }
     }

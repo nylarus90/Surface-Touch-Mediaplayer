@@ -1,5 +1,11 @@
 # Änderungsprotokoll
 
+## Unveröffentlicht
+
+- Texttasten für Öffnen, Wiedergabeliste, Entfernen und Leeren durch sprachneutrale Symbole ersetzt.
+- Automatische deutsche oder englische Oberfläche anhand der Windows-Anzeigesprache ergänzt.
+- Lokalisierte Tooltips, Dialoge, Fehlermeldungen, zugängliche Namen und kurze Statusmeldungen hinzugefügt.
+
 ## 1.0.1
 
 - Die Ton-Taste liest nun den tatsächlichen Stumm-Status von VLC und zeigt dazu das passende Symbol.
