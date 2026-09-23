@@ -15,6 +15,32 @@ The application includes neither VLC nor media codecs. It automatically locates 
 >
 > If the checksum matches and you trust the source, choose “More info” and then “Run anyway” when Windows offers those options. Managed devices or Smart App Control may not offer an override.
 
+### Troubleshooting: the EXE starts directly but its shortcut does not
+
+This specific case was observed with a GitHub release on a Surface Pro 8: the EXE started directly, but Windows blocked the same file when it was launched through a `.lnk` shortcut. The cause was the EXE's Internet origin marker, known as **Mark of the Web** (`Zone.Identifier` with `ZoneId=3`). The shortcut worked after that marker was removed.
+
+1. First verify that the EXE's SHA-256 checksum exactly matches the value in the GitHub release:
+
+   ```powershell
+   Get-FileHash -Algorithm SHA256 .\Surface-Touch-Mediaplayer.exe
+   ```
+
+2. Display the stored NTFS data streams:
+
+   ```powershell
+   Get-Item .\Surface-Touch-Mediaplayer.exe -Stream *
+   ```
+
+3. If `Zone.Identifier` is present, the checksum matches, and you downloaded the EXE from this repository, remove only that Internet origin marker:
+
+   ```powershell
+   Unblock-File .\Surface-Touch-Mediaplayer.exe
+   ```
+
+4. Create the shortcut locally again and retest it.
+
+`Unblock-File` does not sign or validate the application; it only removes the origin marker. Use it only after checking the hash. Smart App Control or SmartScreen do not need to be disabled for this workaround. Policies on managed devices may still prevent the application from starting.
+
 ## Getting started
 
 1. Install the 64-bit version of [VLC media player](https://www.videolan.org/vlc/).

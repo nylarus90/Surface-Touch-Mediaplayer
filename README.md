@@ -15,6 +15,32 @@ Die Anwendung enthält weder VLC noch Mediencodecs. Sie findet eine vorhandene 6
 >
 > Wenn die Prüfsumme stimmt und du der Quelle vertraust, kannst du bei angebotener Option „Weitere Informationen“ und danach „Trotzdem ausführen“ wählen. Auf verwalteten Geräten oder bei aktivem Smart App Control kann diese Option fehlen.
 
+### Fehlerbehebung: EXE startet direkt, aber nicht über eine Verknüpfung
+
+Bei einem von GitHub heruntergeladenen Release wurde dieser konkrete Fall auf einem Surface Pro 8 beobachtet: Die EXE ließ sich direkt starten, der Start derselben Datei über eine `.lnk`-Verknüpfung wurde jedoch blockiert. Ursache war die Internet-Markierung der EXE, der sogenannte **Mark of the Web** (`Zone.Identifier` mit `ZoneId=3`). Nach dem Entfernen dieser Markierung funktionierte auch die Verknüpfung.
+
+1. Prüfe zuerst, dass die SHA-256-Prüfsumme der EXE exakt mit der Angabe im GitHub-Release übereinstimmt:
+
+   ```powershell
+   Get-FileHash -Algorithm SHA256 .\Surface-Touch-Mediaplayer.exe
+   ```
+
+2. Zeige die gespeicherten NTFS-Datenströme an:
+
+   ```powershell
+   Get-Item .\Surface-Touch-Mediaplayer.exe -Stream *
+   ```
+
+3. Wenn `Zone.Identifier` vorhanden ist, der Hash stimmt und du die EXE aus diesem Repository geladen hast, entferne nur diese Internet-Markierung:
+
+   ```powershell
+   Unblock-File .\Surface-Touch-Mediaplayer.exe
+   ```
+
+4. Erstelle die Verknüpfung anschließend lokal neu und teste sie erneut.
+
+`Unblock-File` signiert oder überprüft die Anwendung nicht; es entfernt lediglich die Herkunftsmarkierung. Verwende den Befehl deshalb erst nach der Hash-Prüfung. Smart App Control oder SmartScreen müssen für diesen Workaround nicht deaktiviert werden. Auf verwalteten Geräten können Richtlinien den Start weiterhin verhindern.
+
 ## Start
 
 1. Installiere die 64-Bit-Version von [VLC media player](https://www.videolan.org/vlc/).
