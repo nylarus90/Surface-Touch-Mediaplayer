@@ -61,6 +61,8 @@ For a portable VLC installation, place the complete VLC folder as `VLC` beside t
 - `🔊` and `🔇` control sound; volume controls are beside them.
 - `⌫` removes the selected entry. `🗑` stops playback and clears the entire playlist.
 
+Transport controls are grouped on the left, while mode and volume controls are aligned to the right. The large custom title bar replaces the small Windows controls: drag the title area to move the window, or double-click it to maximize or restore. The window remains resizable at its edges, and maximizing keeps the Windows taskbar visible.
+
 Active modes are highlighted. A short status message appears after a mode is changed. Tooltips, dialogs, error messages, and accessible names automatically use German or English according to the Windows display language.
 
 Playlists exist only for the current session and are discarded when the application closes.

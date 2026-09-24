@@ -61,6 +61,8 @@ Für eine portable VLC-Installation lege den vollständigen VLC-Ordner als `VLC`
 - `🔊` und `🔇` steuern den Ton; daneben liegen die Lautstärketasten.
 - `⌫` entfernt den markierten Eintrag. `🗑` beendet die Wiedergabe und leert die gesamte Liste.
 
+Die Transporttasten liegen links, die Modus- und Lautstärketasten rechts. Die große eigene Fensterleiste ersetzt die kleinen Windows-Schaltflächen: Ziehen am Titelbereich verschiebt das Fenster, ein Doppelklick maximiert oder stellt es wieder her. Das Fenster lässt sich an den Rändern skalieren; Maximieren lässt die Windows-Taskleiste sichtbar.
+
 Aktive Modi werden farbig markiert. Nach dem Umschalten erscheint kurz eine Statusmeldung. Tooltips, Dialoge, Fehlermeldungen und zugängliche Namen werden anhand der Windows-Anzeigesprache automatisch auf Deutsch oder Englisch dargestellt.
 
 Wiedergabelisten gelten nur für die aktuelle Sitzung und werden beim Schließen verworfen.

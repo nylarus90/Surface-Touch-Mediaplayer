@@ -5,6 +5,8 @@
 - Texttasten für Öffnen, Wiedergabeliste, Entfernen und Leeren durch sprachneutrale Symbole ersetzt.
 - Automatische deutsche oder englische Oberfläche anhand der Windows-Anzeigesprache ergänzt.
 - Lokalisierte Tooltips, Dialoge, Fehlermeldungen, zugängliche Namen und kurze Statusmeldungen hinzugefügt.
+- Doppelte Fensterschaltflächen entfernt: Die große Touch-Fensterleiste übernimmt Verschieben, Maximieren, Minimieren und Schließen; die Fensterränder bleiben skalierbar.
+- Transporttasten links und Modus- sowie Lautstärketasten rechts angeordnet.
 
 ## 1.0.1
 

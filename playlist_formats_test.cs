@@ -125,6 +125,9 @@ internal static class PlaylistFormatsTest
                 Button clearButton = (Button)typeof(TouchPlayer).GetField("clearButton", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(form);
                 Label volume = (Label)typeof(TouchPlayer).GetField("volume", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(form);
                 MethodInfo toggleList = typeof(TouchPlayer).GetMethod("TogglePlaylist", BindingFlags.NonPublic | BindingFlags.Instance);
+                TableLayoutPanel controlBar = (TableLayoutPanel)shuffleButton.Parent.Parent;
+                Check(form.FormBorderStyle == FormBorderStyle.None, "Eigene Fensterleiste ohne doppelte Windows-Schaltflächen");
+                Check(previous.Parent != shuffleButton.Parent && controlBar.GetColumn(previous.Parent) == 0 && controlBar.GetColumn(shuffleButton.Parent) == 2, "Transport links und Modus-/Lautstärkesteuerung rechts");
                 Check(play.Height >= 104 && play.Font.Size >= 16, "Große Wiedergabetasten");
                 Check(previous.Width >= 170 && next.Width >= 170 && previous.Height >= 112 && next.Height >= 112 && previous.Font.Size >= 22 && next.Font.Size >= 22, "Extra große Vor- und Zurücktasten");
                 Check(muteButton.Width >= 118 && volume.Width >= 120, "Breite Ton- und Lautstärkeanzeige");

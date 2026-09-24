@@ -402,6 +402,21 @@ internal sealed class SeekBar : Control
 
 internal sealed class TouchPlayer : Form
 {
+    private const int WmNcHitTest = 0x0084;
+    private const int HtClient = 1;
+    private const int HtLeft = 10;
+    private const int HtRight = 11;
+    private const int HtTop = 12;
+    private const int HtTopLeft = 13;
+    private const int HtTopRight = 14;
+    private const int HtBottom = 15;
+    private const int HtBottomLeft = 16;
+    private const int HtBottomRight = 17;
+    private const int WmNcLButtonDown = 0x00A1;
+    private const int HtCaption = 2;
+    [DllImport("user32.dll")] private static extern bool ReleaseCapture();
+    [DllImport("user32.dll")] private static extern IntPtr SendMessage(IntPtr window, int message, IntPtr wParam, IntPtr lParam);
+
     private enum RepeatMode { Off, All, One }
 
     private readonly Color bg = Color.FromArgb(16, 24, 39);
@@ -451,6 +466,34 @@ internal sealed class TouchPlayer : Form
     private RepeatMode repeatMode;
     private FormWindowState savedState;
     private Rectangle savedBounds;
+
+    protected override void WndProc(ref Message message)
+    {
+        base.WndProc(ref message);
+        if (message.Msg != WmNcHitTest || fullscreen || WindowState != FormWindowState.Normal || message.Result != (IntPtr)HtClient) return;
+        long packed = message.LParam.ToInt64();
+        Point point = PointToClient(new Point((short)(packed & 0xffff), (short)((packed >> 16) & 0xffff)));
+        int edge = U(8);
+        bool left = point.X < edge;
+        bool right = point.X >= ClientSize.Width - edge;
+        bool topEdge = point.Y < edge;
+        bool bottom = point.Y >= ClientSize.Height - edge;
+        if (left && topEdge) message.Result = (IntPtr)HtTopLeft;
+        else if (right && topEdge) message.Result = (IntPtr)HtTopRight;
+        else if (left && bottom) message.Result = (IntPtr)HtBottomLeft;
+        else if (right && bottom) message.Result = (IntPtr)HtBottomRight;
+        else if (left) message.Result = (IntPtr)HtLeft;
+        else if (right) message.Result = (IntPtr)HtRight;
+        else if (topEdge) message.Result = (IntPtr)HtTop;
+        else if (bottom) message.Result = (IntPtr)HtBottom;
+    }
+
+    private void BeginWindowDrag(object sender, MouseEventArgs e)
+    {
+        if (e.Button != MouseButtons.Left || fullscreen || WindowState != FormWindowState.Normal) return;
+        ReleaseCapture();
+        SendMessage(Handle, WmNcLButtonDown, (IntPtr)HtCaption, IntPtr.Zero);
+    }
 
     private void Log(string message)
     {
@@ -526,6 +569,7 @@ internal sealed class TouchPlayer : Form
     internal TouchPlayer()
     {
         Text = "Surface Touch Mediaplayer";
+        FormBorderStyle = FormBorderStyle.None;
         BackColor = bg;
         ForeColor = Color.White;
         Font = new Font("Segoe UI", 13);
@@ -576,6 +620,9 @@ internal sealed class TouchPlayer : Form
         brand.Padding = new Padding(U(20), 0, 0, 0);
         top.Controls.Add(brand);
         brand.SendToBack();
+        top.MouseDown += BeginWindowDrag;
+        brand.MouseDown += BeginWindowDrag;
+        brand.MouseDoubleClick += delegate { ToggleMaximize(); };
 
         middle.Dock = DockStyle.Fill;
         middle.Padding = new Padding(U(12));
@@ -668,33 +715,49 @@ internal sealed class TouchPlayer : Form
             }
         };
         bottom.Controls.Add(seek, 0, 1);
-        FlowLayoutPanel controls = new FlowLayoutPanel();
+        TableLayoutPanel controls = new TableLayoutPanel();
         controls.Dock = DockStyle.Fill;
-        controls.WrapContents = false;
+        controls.ColumnCount = 3;
+        controls.RowCount = 1;
+        controls.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        controls.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        controls.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         bottom.Controls.Add(controls, 0, 2);
+        FlowLayoutPanel transportControls = new FlowLayoutPanel();
+        transportControls.AutoSize = true;
+        transportControls.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        transportControls.WrapContents = false;
+        transportControls.Margin = new Padding(0);
+        controls.Controls.Add(transportControls, 0, 0);
+        FlowLayoutPanel modeControls = new FlowLayoutPanel();
+        modeControls.AutoSize = true;
+        modeControls.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        modeControls.WrapContents = false;
+        modeControls.Margin = new Padding(0);
+        controls.Controls.Add(modeControls, 2, 0);
         previousButton = MakeNavigationButton("◀◀", delegate { Previous(); });
         SetHint(previousButton, UiText.Get("Vorheriger Titel", "Previous track"));
-        controls.Controls.Add(previousButton);
+        transportControls.Controls.Add(previousButton);
         playPause = MakeMediaIconButton("▶", 132, UiText.Get("Wiedergabe oder Pause", "Play or pause"), delegate { TogglePlayback(); });
-        controls.Controls.Add(playPause);
-        controls.Controls.Add(MakeMediaIconButton("■", 116, UiText.Get("Stopp", "Stop"), delegate { StopPlayback(); }));
+        transportControls.Controls.Add(playPause);
+        transportControls.Controls.Add(MakeMediaIconButton("■", 116, UiText.Get("Stopp", "Stop"), delegate { StopPlayback(); }));
         nextButton = MakeNavigationButton("▶▶", delegate { Next(); });
         SetHint(nextButton, UiText.Get("Nächster Titel", "Next track"));
-        controls.Controls.Add(nextButton);
+        transportControls.Controls.Add(nextButton);
         shuffleButton = MakeMediaIconButton("🔀", 116, UiText.Get("Zufallswiedergabe: aus", "Shuffle: off"), delegate { ToggleShuffle(); });
-        controls.Controls.Add(shuffleButton);
+        modeControls.Controls.Add(shuffleButton);
         repeatButton = MakeMediaIconButton("🔁", 116, UiText.Get("Wiederholen: aus", "Repeat: off"), delegate { CycleRepeatMode(); });
-        controls.Controls.Add(repeatButton);
+        modeControls.Controls.Add(repeatButton);
         fullButton = MakeMediaIconButton("⛶", 112, UiText.Get("Vollbild", "Full screen"), delegate { ToggleFullscreen(); });
-        controls.Controls.Add(fullButton);
+        modeControls.Controls.Add(fullButton);
         Button volumeDown = MakeTransportButton("−", 70, delegate { ChangeVolume(-10); });
         SetHint(volumeDown, UiText.Get("Leiser", "Volume down"));
-        controls.Controls.Add(volumeDown);
+        modeControls.Controls.Add(volumeDown);
         Button volumeUp = MakeTransportButton("+", 70, delegate { ChangeVolume(10); });
         SetHint(volumeUp, UiText.Get("Lauter", "Volume up"));
-        controls.Controls.Add(volumeUp);
+        modeControls.Controls.Add(volumeUp);
         muteButton = MakeMediaIconButton("🔊", 118, UiText.Get("Ton an – ausschalten", "Sound on – mute"), delegate { ToggleMute(); });
-        controls.Controls.Add(muteButton);
+        modeControls.Controls.Add(muteButton);
         volume.Text = "100%";
         volume.ForeColor = accent;
         volume.Font = new Font("Segoe UI", 17, FontStyle.Bold);
@@ -702,7 +765,7 @@ internal sealed class TouchPlayer : Form
         volume.Width = U(120);
         volume.Height = U(102);
         volume.TextAlign = ContentAlignment.MiddleCenter;
-        controls.Controls.Add(volume);
+        modeControls.Controls.Add(volume);
 
         AllowDrop = true;
         video.AllowDrop = true;
@@ -992,7 +1055,11 @@ internal sealed class TouchPlayer : Form
     private void ToggleMaximize()
     {
         if (fullscreen) ToggleFullscreen();
-        WindowState = WindowState == FormWindowState.Maximized ? FormWindowState.Normal : FormWindowState.Maximized;
+        if (WindowState == FormWindowState.Maximized) WindowState = FormWindowState.Normal;
+        else {
+            MaximizedBounds = Screen.FromControl(this).WorkingArea;
+            WindowState = FormWindowState.Maximized;
+        }
     }
     private void TogglePlaylist()
     {
@@ -1035,11 +1102,14 @@ internal sealed class TouchPlayer : Form
         } else {
             fullscreen = false;
             TopMost = false;
-            FormBorderStyle = FormBorderStyle.Sizable;
+            FormBorderStyle = FormBorderStyle.None;
             top.Visible = true;
             root.RowStyles[0].Height = U(86);
             ApplyPlaylistVisibility(false);
-            if (savedState == FormWindowState.Maximized) WindowState = FormWindowState.Maximized;
+            if (savedState == FormWindowState.Maximized) {
+                MaximizedBounds = Screen.FromControl(this).WorkingArea;
+                WindowState = FormWindowState.Maximized;
+            }
             else { WindowState = FormWindowState.Normal; Bounds = savedBounds; }
             SetModeButton(fullButton, false);
             ShowStatus(fullButton, UiText.Get("Vollbild verlassen", "Exited full screen"));
