@@ -1,7 +1,7 @@
-# Checkliste für die Veröffentlichung von 1.0.1
+# Checkliste für die Veröffentlichung von 1.1.0
 
 - [x] MIT-Lizenz für den eigenen Quellcode als `LICENSE` hinzugefügt.
-- [x] `CHANGELOG.md` für Version 1.0.1 aktualisiert.
+- [x] `CHANGELOG.md` für Version 1.1.0 aktualisiert.
 - [x] `.\build.ps1 -Test -Package` erfolgreich ausgeführt; Prüfsumme in den Release-Notizen ergänzt.
 - [x] EXE und Release-Archiv hochladen; keine VLC-Dateien, Logs, Verknüpfungen oder lokalen Einstellungen beilegen.
 - [ ] Auf einem Surface Pro 8 bei 2880 × 1920 und 200 % Skalierung kurz prüfen.

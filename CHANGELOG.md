@@ -2,6 +2,8 @@
 
 ## Unveröffentlicht
 
+## 1.1.0 – 2026-09-24
+
 - Texttasten für Öffnen, Wiedergabeliste, Entfernen und Leeren durch sprachneutrale Symbole ersetzt.
 - Automatische deutsche oder englische Oberfläche anhand der Windows-Anzeigesprache ergänzt.
 - Lokalisierte Tooltips, Dialoge, Fehlermeldungen, zugängliche Namen und kurze Statusmeldungen hinzugefügt.
